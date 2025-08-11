@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMPLY 월간 레포트</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+        
+        .report-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .header .date {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        
+        .section h2 {
+            font-size: 1.8rem;
+            color: #1e293b;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .past-section .section-icon {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+        
+        .future-section .section-icon {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .category {
+            margin-bottom: 35px;
+        }
+        
+        .category h3 {
+            font-size: 1.4rem;
+            color: #475569;
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .metric-title {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+        
+        .metric-change {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .metric-change.positive {
+            color: #059669;
+        }
+        
+        .metric-change.negative {
+            color: #dc2626;
+        }
+        
+        .metric-change.neutral {
+            color: #64748b;
+        }
+        
+        .chart-container {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .table-container {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+        
+        th {
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            font-size: 0.9rem;
+        }
+        
+        td {
+            padding: 14px 20px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        .sparkline {
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sparkline::after {
+            content: '📈';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-inactive {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-lost {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e2e8f0;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 6px;
+            width: 10px;
+            height: 10px;
+            background: #3b82f6;
+            border-radius: 50%;
+        }
+        
+        .timeline-date {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .timeline-content {
+            margin-top: 5px;
+            color: #374151;
+        }
+        
+        .prediction-card {
+            background: linear-gradient(135deg, #fef7ff, #faf5ff);
+            border: 1px solid #e9d5ff;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .prediction-title {
+            color: #7c3aed;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .two-column {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header .date {
+                font-size: 1rem;
+            }
+        }
+        
+        .alert-high { background: #fef2f2; border-left: 4px solid #ef4444; }
+        .alert-medium { background: #fffbeb; border-left: 4px solid #f59e0b; }
+        .alert-low { background: #f0fdf4; border-left: 4px solid #10b981; }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <!-- 헤더 -->
+        <div class="header">
+            <h1>SMPLY 월간 레포트</h1>
+            <div class="date">2025년 9월 (2025.09.01 - 2025.09.30)</div>
+        </div>
+
+        <!-- 과거 데이터 섹션 -->
+        <div class="section past-section">
+            <h2>
+                <span class="section-icon">📊</span>
+                지난 달 현황 분석
+            </h2>
+
+            <!-- Software 분석 -->
+            <div class="category">
+                <h3>💻 Software</h3>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-title">총 지출</div>
+                        <div class="metric-value">₩12,450,000</div>
+                        <div class="metric-change positive">+8.5% vs 전월</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">미사용 Software</div>
+                        <div class="metric-value">23개</div>
+                        <div class="metric-change negative">잠재 절약: ₩890,000/월</div>
+                    </div>
+                </div>
+
+                <div class="two-column">
+                    <div class="chart-container">
+                        <h4>월 지출 TOP 5</h4>
+                        <canvas id="expenseChart" width="400" height="250"></canvas>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h4>사용량 TOP 5</h4>
+                        <canvas id="usageChart" width="400" height="250"></canvas>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>사용량 대비 지출이 높은 SaaS TOP 5</th>
+                                <th>월 지출</th>
+                                <th>월간 사용시간</th>
+                                <th>비효율도</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="alert-high">
+                                <td>Salesforce</td>
+                                <td>₩840,000</td>
+                                <td>1,280분</td>
+                                <td>높음</td>
+                            </tr>
+                            <tr class="alert-medium">
+                                <td>Adobe Creative Suite</td>
+                                <td>₩980,000</td>
+                                <td>3,560분</td>
+                                <td>중간</td>
+                            </tr>
+                            <tr class="alert-medium">
+                                <td>Atlassian Suite</td>
+                                <td>₩560,000</td>
+                                <td>2,890분</td>
+                                <td>중간</td>
+                            </tr>
+                            <tr class="alert-low">
+                                <td>DataDog</td>
+                                <td>₩450,000</td>
+                                <td>5,120분</td>
+                                <td>낮음</td>
+                            </tr>
+                            <tr class="alert-low">
+                                <td>GitHub Enterprise</td>
+                                <td>₩380,000</td>
+                                <td>6,740분</td>
+                                <td>낮음</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Hardware 분석 -->
+            <div class="category">
+                <h3>🖥️ Hardware</h3>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-title">추가된 Hardware</div>
+                        <div class="metric-value">15대</div>
+                        <div class="metric-change neutral">신규 입사자용</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">제거된 Hardware</div>
+                        <div class="metric-value">8대</div>
+                        <div class="metric-change neutral">퇴사/고장</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">상태 변경</div>
+                        <div class="metric-value">23대</div>
+                        <div class="metric-change neutral">수리/업그레이드</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">매각 완료</div>
+                        <div class="metric-value">5대</div>
+                        <div class="metric-change positive">₩2,300,000 회수</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h4>상태별 Hardware 수량 추이</h4>
+                    <canvas id="hardwareChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- 구성원 변화 -->
+            <div class="category">
+                <h3>👥 구성원</h3>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-title">신규 입사</div>
+                        <div class="metric-value">12명</div>
+                        <div class="metric-change positive">개발팀 8명, 디자인팀 4명</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">퇴사</div>
+                        <div class="metric-value">5명</div>
+                        <div class="metric-change neutral">자연 이직</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">순증가</div>
+                        <div class="metric-value">+7명</div>
+                        <div class="metric-change positive">총 직원 수: 243명</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 자산 실사 -->
+            <div class="category">
+                <h3>🔍 자산 실사</h3>
+                
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">2024.12.05</div>
+                        <div class="timeline-content">
+                            <strong>서울 본사 하드웨어 실사</strong><br>
+                            노트북 127대, 모니터 198대, 키보드/마우스 검증 완료
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">2024.12.15</div>
+                        <div class="timeline-content">
+                            <strong>소프트웨어 라이선스 감사</strong><br>
+                            미사용 라이선스 23개 발견, 절약 효과 ₩890,000/월
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">2024.12.20</div>
+                        <div class="timeline-content">
+                            <strong>부산 지사 실사</strong><br>
+                            총 45대 장비 확인, 불일치 2건 발견 및 해결
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 예측 데이터 섹션 -->
+        <div class="section future-section">
+            <h2>
+                <span class="section-icon">🔮</span>
+                다음 달 예측 및 계획
+            </h2>
+
+            <!-- Software 예측 -->
+            <div class="category">
+                <h3>💻 Software</h3>
+                
+                <div class="prediction-card">
+                    <div class="prediction-title">월간 SaaS 지출 예상</div>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-title">예상 총 지출</div>
+                            <div class="metric-value">₩11,800,000</div>
+                            <div class="metric-change positive">-5.2% (최적화 효과)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">주요 결제일</div>
+                            <div class="metric-value">1월 15일</div>
+                            <div class="metric-change neutral">₩8,200,000</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>예정된 결제</th>
+                                <th>결제일</th>
+                                <th>금액</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Microsoft 365 (연간)</td>
+                                <td>2025.01.15</td>
+                                <td>₩28,080,000</td>
+                            </tr>
+                            <tr>
+                                <td>AWS (월간)</td>
+                                <td>2025.01.01</td>
+                                <td>₩1,850,000</td>
+                            </tr>
+                            <tr>
+                                <td>Slack Enterprise</td>
+                                <td>2025.01.10</td>
+                                <td>₩720,000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Hardware 예측 -->
+            <div class="category">
+                <h3>🖥️ Hardware</h3>
+                
+                <div class="prediction-card">
+                    <div class="prediction-title">교체/매각 추천 장비</div>
+                    
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>장비명</th>
+                                    <th>관리번호</th>
+                                    <th>구매일</th>
+                                    <th>구매 금액</th>
+                                    <th>상태</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="alert-high">
+                                    <td>MacBook Pro 13" 2019</td>
+                                    <td>IT-2019-0234</td>
+                                    <td>2019.03.15</td>
+                                    <td>₩2,890,000</td>
+                                    <td><span class="status-badge status-inactive">고장</span></td>
+                                </tr>
+                                <tr class="alert-high">
+                                    <td>MacBook Pro 13" 2019</td>
+                                    <td>IT-2019-0187</td>
+                                    <td>2019.02.08</td>
+                                    <td>₩2,890,000</td>
+                                    <td><span class="status-badge status-pending">미확인</span></td>
+                                </tr>
+                                <tr class="alert-medium">
+                                    <td>Dell UltraSharp U2720Q</td>
+                                    <td>IT-2020-0456</td>
+                                    <td>2020.06.22</td>
+                                    <td>₩680,000</td>
+                                    <td><span class="status-badge status-active">사용</span></td>
+                                </tr>
+                                <tr class="alert-medium">
+                                    <td>ThinkPad X1 Carbon</td>
+                                    <td>IT-2019-0089</td>
+                                    <td>2019.01.12</td>
+                                    <td>₩2,450,000</td>
+                                    <td><span class="status-badge status-active">사용</span></td>
+                                </tr>
+                                <tr class="alert-low">
+                                    <td>iMac 27" 2020</td>
+                                    <td>IT-2020-0234</td>
+                                    <td>2020.08.05</td>
+                                    <td>₩3,200,000</td>
+                                    <td><span class="status-badge status-inactive">분실</span></td>
+                                </tr>
+                                <tr class="alert-low">
+                                    <td>MacBook Air 13" 2019</td>
+                                    <td>IT-2019-0345</td>
+                                    <td>2019.05.20</td>
+                                    <td>₩1,890,000</td>
+                                    <td><span class="status-badge status-pending">미확인</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Hardware 상태별 수량 차트
+        const ctx = document.getElementById('hardwareChart').getContext('2d');
+        const hardwareChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+                datasets: [{
+                    label: '정상',
+                    data: [180, 185, 190, 195, 200, 205, 210, 215, 220, 225, 230, 235],
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: '수리중',
+                    data: [5, 8, 3, 7, 4, 6, 9, 2, 5, 8, 6, 4],
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: '대기중',
+                    data: [12, 8, 15, 10, 18, 12, 8, 20, 15, 10, 12, 18],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+
+        // 월 지출 TOP 5 차트
+        const expenseCtx = document.getElementById('expenseChart').getContext('2d');
+        const expenseChart = new Chart(expenseCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Microsoft 365', 'AWS', 'Adobe Creative Suite', 'Slack Enterprise', 'Zoom Pro'],
+                datasets: [{
+                    label: '월 지출 (원)',
+                    data: [2340000, 1850000, 980000, 720000, 650000],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(139, 92, 246, 0.8)',
+                        'rgba(236, 72, 153, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(139, 92, 246, 1)',
+                        'rgba(236, 72, 153, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₩' + (value / 1000000).toFixed(1) + 'M';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 사용량 TOP 5 차트
+        const usageCtx = document.getElementById('usageChart').getContext('2d');
+        const usageChart = new Chart(usageCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Microsoft 365', 'Slack Enterprise', 'Zoom Pro', 'Notion', 'Figma'],
+                datasets: [{
+                    label: '월간 사용시간 (분)',
+                    data: [18420, 15680, 12340, 9750, 8920],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(139, 92, 246, 0.8)',
+                        'rgba(236, 72, 153, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(139, 92, 246, 1)',
+                        'rgba(236, 72, 153, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return (value / 1000).toFixed(1) + 'k분';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 동적 데이터 업데이트 함수들
+        function updateReportData() {
+            // 실제 구현에서는 API로부터 데이터를 가져와 업데이트
+            console.log('레포트 데이터 업데이트 중...');
+        }
+
+        // 페이지 로드 시 데이터 업데이트
+        document.addEventListener('DOMContentLoaded', updateReportData);
+    </script>
+</body>
+</html>
